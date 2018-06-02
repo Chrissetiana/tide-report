@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Tide Report</string>
+
+    <string name="alert_no">No</string>
+    <string name="alert_yes">Yes</string>
+    <string name="alert_not_available">Not available</string>
 </resources>
