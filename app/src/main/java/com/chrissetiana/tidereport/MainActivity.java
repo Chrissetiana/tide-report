@@ -3,6 +3,7 @@ package com.chrissetiana.tidereport;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.util.Log;
 import android.widget.TextView;
 
@@ -24,9 +25,6 @@ public class MainActivity extends AppCompatActivity {
 
     public static final String LOG_TAG = MainActivity.class.getSimpleName();
 
-    /**
-     * URL to query the USGS dataset for earthquake information
-     */
     private static final String REQUEST_URL = "http://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2012-01-01&endtime=2012-12-01&minmagnitude=6";
 
     @Override
@@ -38,15 +36,15 @@ public class MainActivity extends AppCompatActivity {
         task.execute();
     }
 
-    private void setViews(Tsunami event) {
+    private void setViews(Tsunami tsunami) {
         TextView titleView = findViewById(R.id.tsunami_title);
-        titleView.setText(event.title);
+        titleView.setText(tsunami.title);
 
         TextView dateView = findViewById(R.id.tsunami_date);
-        dateView.setText(getDate(event.time));
+        dateView.setText(getDate(tsunami.time));
 
         TextView alertView = findViewById(R.id.tsunami_alert);
-        alertView.setText(getAlert(event.alert));
+        alertView.setText(getAlert(tsunami.alert));
     }
 
     private String getDate(long time) {
@@ -74,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 jsonResponse = makeHttpRequest(url);
             } catch (IOException e) {
-                Log.e(LOG_TAG, "Problem collecting JSON earthquake data", e);
+                Log.e(LOG_TAG, "Problem making the HTTP request.", e);
             }
 
             Tsunami tsunami = getJSONData(jsonResponse);
@@ -104,6 +102,11 @@ public class MainActivity extends AppCompatActivity {
 
         private String makeHttpRequest(URL url) throws IOException {
             String jsonResponse = "";
+
+            if (url == null) {
+                return jsonResponse;
+            }
+
             HttpURLConnection urlConnection = null;
             InputStream inputStream = null;
             try {
@@ -112,10 +115,15 @@ public class MainActivity extends AppCompatActivity {
                 urlConnection.setReadTimeout(10000 /* milliseconds */);
                 urlConnection.setConnectTimeout(15000 /* milliseconds */);
                 urlConnection.connect();
-                inputStream = urlConnection.getInputStream();
-                jsonResponse = readFromStream(inputStream);
+
+                if (urlConnection.getResponseCode() == 200) {
+                    inputStream = urlConnection.getInputStream();
+                    jsonResponse = readFromStream(inputStream);
+                } else {
+                    Log.e(LOG_TAG, "Error response code: " + urlConnection.getResponseCode());
+                }
             } catch (IOException e) {
-                Log.e(LOG_TAG, "Problem establishing connection", e);
+                Log.e(LOG_TAG, "Problem retrieving the earthquake JSON results.", e);
             } finally {
                 if (urlConnection != null) {
                     urlConnection.disconnect();
@@ -142,9 +150,13 @@ public class MainActivity extends AppCompatActivity {
             return output.toString();
         }
 
-        private Tsunami getJSONData(String earthquakeJSON) {
+        private Tsunami getJSONData(String tsunamiJSON) {
+            if (TextUtils.isEmpty(tsunamiJSON)) {
+                return null;
+            }
+
             try {
-                JSONObject jsonObject = new JSONObject(earthquakeJSON);
+                JSONObject jsonObject = new JSONObject(tsunamiJSON);
                 JSONArray jsonArray = jsonObject.getJSONArray("features");
 
                 if (jsonArray.length() > 0) {
