@@ -7,8 +7,8 @@ public class Tsunami {
     public final int alert;
 
     public Tsunami(String earthquakeTitle, long time, int tsunamiAlert) {
-        this.title = earthquakeTitle;
+        title = earthquakeTitle;
         this.time = time;
-        this.alert = tsunamiAlert;
+        alert = tsunamiAlert;
     }
 }
