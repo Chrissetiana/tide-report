@@ -23,8 +23,6 @@ import java.text.SimpleDateFormat;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static final String LOG_TAG = MainActivity.class.getSimpleName();
-
     private static final String REQUEST_URL = "http://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2012-01-01&endtime=2012-12-01&minmagnitude=6";
 
     @Override
@@ -33,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         TsunamiAsyncTask task = new TsunamiAsyncTask();
-        task.execute();
+        task.execute(REQUEST_URL);
     }
 
     private void setViews(Tsunami tsunami) {
@@ -45,6 +43,26 @@ public class MainActivity extends AppCompatActivity {
 
         TextView alertView = findViewById(R.id.tsunami_alert);
         alertView.setText(getAlert(tsunami.alert));
+    }
+
+    private class TsunamiAsyncTask extends AsyncTask<String, Void, Tsunami> {
+
+        protected Tsunami doInBackground(String... urls) {
+            if (urls.length < 1 || urls[0] == null) {
+                return null;
+            }
+
+            Tsunami result = QueryUtils.fetchEarthquakeData(urls[0]);
+            return result;
+        }
+
+        protected void onPostExecute(Tsunami result) {
+            if (result == null) {
+                return;
+            }
+
+            setViews(result);
+        }
     }
 
     private String getDate(long time) {
@@ -59,120 +77,6 @@ public class MainActivity extends AppCompatActivity {
                 return getString(R.string.alert_yes);
             default:
                 return getString(R.string.alert_not_available);
-        }
-    }
-
-    private class TsunamiAsyncTask extends AsyncTask<URL, Void, Tsunami> {
-
-        @Override
-        protected Tsunami doInBackground(URL... urls) {
-            String jsonResponse = "";
-            URL url = createUrl(REQUEST_URL);
-
-            try {
-                jsonResponse = makeHttpRequest(url);
-            } catch (IOException e) {
-                Log.e(LOG_TAG, "Problem making the HTTP request.", e);
-            }
-
-            Tsunami tsunami = getJSONData(jsonResponse);
-
-            return tsunami;
-        }
-
-        @Override
-        protected void onPostExecute(Tsunami tsunami) {
-            if (tsunami == null) {
-                return;
-            }
-
-            setViews(tsunami);
-        }
-
-        private URL createUrl(String stringUrl) {
-            URL url = null;
-            try {
-                url = new URL(stringUrl);
-            } catch (MalformedURLException exception) {
-                Log.e(LOG_TAG, "Error with creating URL", exception);
-                return null;
-            }
-            return url;
-        }
-
-        private String makeHttpRequest(URL url) throws IOException {
-            String jsonResponse = "";
-
-            if (url == null) {
-                return jsonResponse;
-            }
-
-            HttpURLConnection urlConnection = null;
-            InputStream inputStream = null;
-            try {
-                urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("GET");
-                urlConnection.setReadTimeout(10000 /* milliseconds */);
-                urlConnection.setConnectTimeout(15000 /* milliseconds */);
-                urlConnection.connect();
-
-                if (urlConnection.getResponseCode() == 200) {
-                    inputStream = urlConnection.getInputStream();
-                    jsonResponse = readFromStream(inputStream);
-                } else {
-                    Log.e(LOG_TAG, "Error response code: " + urlConnection.getResponseCode());
-                }
-            } catch (IOException e) {
-                Log.e(LOG_TAG, "Problem retrieving the earthquake JSON results.", e);
-            } finally {
-                if (urlConnection != null) {
-                    urlConnection.disconnect();
-                }
-                if (inputStream != null) {
-                    // function must handle java.io.IOException here
-                    inputStream.close();
-                }
-            }
-            return jsonResponse;
-        }
-
-        private String readFromStream(InputStream inputStream) throws IOException {
-            StringBuilder output = new StringBuilder();
-            if (inputStream != null) {
-                InputStreamReader inputStreamReader = new InputStreamReader(inputStream, Charset.forName("UTF-8"));
-                BufferedReader reader = new BufferedReader(inputStreamReader);
-                String line = reader.readLine();
-                while (line != null) {
-                    output.append(line);
-                    line = reader.readLine();
-                }
-            }
-            return output.toString();
-        }
-
-        private Tsunami getJSONData(String tsunamiJSON) {
-            if (TextUtils.isEmpty(tsunamiJSON)) {
-                return null;
-            }
-
-            try {
-                JSONObject jsonObject = new JSONObject(tsunamiJSON);
-                JSONArray jsonArray = jsonObject.getJSONArray("features");
-
-                if (jsonArray.length() > 0) {
-                    JSONObject element = jsonArray.getJSONObject(0);
-                    JSONObject properties = element.getJSONObject("properties");
-
-                    String title = properties.getString("title");
-                    long time = properties.getLong("time");
-                    int alert = properties.getInt("tsunami");
-
-                    return new Tsunami(title, time, alert);
-                }
-            } catch (JSONException e) {
-                Log.e(LOG_TAG, "Problem parsing the earthquake JSON results", e);
-            }
-            return null;
         }
     }
 }
