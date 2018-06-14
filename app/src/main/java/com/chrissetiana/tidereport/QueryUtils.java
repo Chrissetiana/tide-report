@@ -18,7 +18,7 @@ import java.nio.charset.Charset;
 
 public final class QueryUtils {
 
-    public static final String LOG_TAG = MainActivity.class.getSimpleName();
+    public static final String LOG_TAG = QueryUtils.class.getSimpleName();
 
     public static Tsunami fetchEarthquakeData(String requestUrl) {
         URL url = createUrl(requestUrl);
