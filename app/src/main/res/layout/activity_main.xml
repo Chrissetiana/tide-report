@@ -11,14 +11,15 @@
         android:id="@+id/header_event"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="Event Title"
         android:textAllCaps="true"
-        android:textAppearance="?android:textAppearanceSmall"
-        tools:text="Header Event" />
+        android:textAppearance="?android:textAppearanceSmall" />
 
     <TextView
         android:id="@+id/tsunami_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:paddingBottom="16dp"
         android:textAppearance="?android:textAppearanceLarge"
         tools:text="Event Title" />
 
@@ -26,15 +27,15 @@
         android:id="@+id/header_date"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingTop="16dp"
+        android:text="Event Date"
         android:textAllCaps="true"
-        android:textAppearance="?android:textAppearanceSmall"
-        tools:text="Header Date" />
+        android:textAppearance="?android:textAppearanceSmall" />
 
     <TextView
         android:id="@+id/tsunami_date"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:paddingBottom="16dp"
         android:textAppearance="?android:textAppearanceLarge"
         tools:text="Event Date" />
 
@@ -42,10 +43,9 @@
         android:id="@+id/header_alert"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingTop="16dp"
+        android:text="Tsunami Alert"
         android:textAllCaps="true"
-        android:textAppearance="?android:textAppearanceSmall"
-        tools:text="Header Alert" />
+        android:textAppearance="?android:textAppearanceSmall" />
 
     <TextView
         android:id="@+id/tsunami_alert"
